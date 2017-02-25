@@ -1,5 +1,4 @@
-#!/usr/bin/env node
-
+#!/usr/bin/node
 var argv = require('yargs').argv;
 
 var Find = require('./index.js');
