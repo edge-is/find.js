@@ -20,46 +20,27 @@ var Find = function (dir, options){
     errors : []
   };
 
+  self.base = "";
+
+  if (self.options.absolute && !path.isAbsolute(dir)){
+    self.base = __dirname;
+  }
+
   self.options.concurrency = self.options.concurrency || 10;
 
   var fn = function (){}
 
   self.queue = async.queue(function(location, callback) {
-    fs.stat(location, function (err, stats){
-      if (err){
-        self.output.push({
-          path : location,
-          error : err
-        });
-        return callback();
-      }
-
-      var obj = {
-        path : location,
-        stats : stats
-      };
-      if (stats.isDirectory()){
-        self.output.directorys.push(obj);
-        emitter.emit('directory', location, stats);
-        return self.dir(location, callback);
-      }
-
-      if (stats.isFile()){
-        if (matchFile(obj, self.options)){
-          self.output.files.push(obj);
-          emitter.emit('file', location, stats);
-        }
-
-      }
-
-      callback();
-    })
+    async.setImmediate(function (){
+      self._stat(location, callback);
+    });
   }, self.options.concurrency);
 
   self.done = function(){};
 
   self.queue.drain = function (){
-    self.done(self.output.files, self.output.folders);
+    self.done(null, self.output);
+    emitter.emit('done', self.output);
   }
 
   return this;
@@ -69,7 +50,11 @@ var Find = function (dir, options){
 
 Find.prototype.start = function (callback) {
   var self = this;
-  self.done = callback || self.done;
+
+  var fn = function (){};
+
+  self.onError = callback || fn;
+  self.done = callback || fn;
   self.dir(self.directory);
   return emitter;
 };
@@ -80,12 +65,18 @@ Find.prototype.dir = function (dir, callback) {
   callback = callback || fn;
 
   fs.readdir(dir, function (err, res){
-    if (err) return callback(err);
+    if (err) {
+      self.output.errors.push(err);
+      emitter.emit('err', err);
+      return self.done(err);
+    }
     async.forEachLimit(res, self.options.concurrency, function (value, next){
       var location = path.join(dir, value);
       self.queue.push(location, fn);
-      next();
-    }, callback);
+      async.setImmediate(next)
+    }, function (){
+      async.setImmediate(callback)
+    });
   });
 };
 
@@ -101,16 +92,16 @@ function matchFile(obj, options){
   }
 
   if (options.mtime){
-    status.push (compare(options.mtime.time, obj.stats.mtime, options.mtime.newer));
+    status.push (compare(options.mtime.time, obj.stats.mtime, options.mtime.newer, options.mtime.exact));
   }
   if (options.ctime){
-    status.push (compare(options.ctime.time, obj.stats.ctime, options.ctime.newer));
+    status.push (compare(options.ctime.time, obj.stats.ctime, options.ctime.newer, options.ctime.exact));
   }
   if (options.atime){
-    status.push (compare(options.atime.time, obj.stats.atime, options.atime.newer));
+    status.push (compare(options.atime.time, obj.stats.atime, options.atime.newer, options.atime.exact));
   }
   if (options.birthtime){
-    status.push (compare(options.birthtime.time, obj.stats.birthtime, options.birthtime.newer));
+    status.push (compare(options.birthtime.time, obj.stats.birthtime, options.birthtime.newer, options.birthtime.exact));
   }
 
   if (options.size){
@@ -124,8 +115,44 @@ function matchFile(obj, options){
 
   return false;
 }
+Find.prototype._stat = function(location, callback){
+  var self = this;
+  fs.stat(location, function (err, stats){
+    var _location = path.join(self.base, location)
+    if (err){
+      self.error.output.push({
+        path : _location,
+        error : err
+      });
+      return callback();
+    }
 
-function compare(a, b, larger){
+    var obj = {
+      path : _location,
+      stats : stats
+    };
+    if (stats.isDirectory()){
+      self.output.directorys.push(obj);
+      emitter.emit('directory', location, stats);
+      return self.dir(location, callback);
+    }
+
+    if (stats.isFile()){
+      if (matchFile(obj, self.options)){
+        self.output.files.push(obj);
+        emitter.emit('file', _location, stats);
+      }
+
+    }
+    setImmediate(callback)
+  });
+}
+
+
+function compare(a, b, larger, exact){
+  if (exact) {
+    return (a === b);
+  }
   if (larger){
     return (a < b);
   }
