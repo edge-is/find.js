@@ -38,6 +38,7 @@ if (argv.help){
     -v           verbose, for debugging
     -s           include stats (json only)
     --output     output to file
+    -a           absolute path
 `);
 }
 
