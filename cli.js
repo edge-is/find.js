@@ -1,6 +1,5 @@
 #!/usr/bin/node
 var argv = require('yargs').argv;
-
 var Find = require('./index.js');
 var chrono = require('chrono-node')
 var humanSize = require('human-size');
