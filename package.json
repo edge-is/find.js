@@ -1,6 +1,6 @@
 {
   "name": "find.js",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Fast Library and cli for finding files ore just listing files",
   "main": "index.js",
   "scripts": {
