@@ -1,19 +1,25 @@
 {
   "name": "find.js",
   "version": "1.0.1",
-  "description": "Find.js",
+  "description": "Fast Library and cli for finding files ore just listing files",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
-    "find"
+    "find",
+    "fast",
+    "performance"
   ],
   "bin": {
     "findjs": "./cli.js"
   },
   "author": "Agust Ingi Kjartansson",
   "license": "GPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/edge-is/find.js.git"
+  },
   "dependencies": {
     "async": "^2.1.5",
     "chrono-node": "^1.2.5",
