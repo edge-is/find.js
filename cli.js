@@ -115,7 +115,7 @@ var f = find.start(function (err, output){
 
   async.forEachLimit(output.files, 10, function(file, next){
     string+=parseStringForOutput(file.path, file.stats) + '\n';
-    next();
+    async.setImmediate(next)
 
   }, function (){
     fs.writeFile(argv.output, string, function (err, res){
