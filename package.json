@@ -21,8 +21,8 @@
     "url": "git://github.com/edge-is/find.js.git"
   },
   "dependencies": {
-    "async": "^2.1.5",
-    "chrono-node": "^1.2.5",
+    "async": "^2.5.0",
+    "chrono-node": "^1.3.5",
     "colors": "^1.1.2",
     "filesize-parser": "^1.4.1",
     "glob-to-regexp": "^0.3.0",
