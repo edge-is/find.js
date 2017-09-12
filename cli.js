@@ -12,11 +12,13 @@ var async = require('async');
 var directory = argv._[0];
 
 
+
+
 var options = {
   absolute : argv.a || false,
-  concurrency : argv.c || 10
+  concurrency : argv.c || 10,
+  hidden : (argv['excludehidden']) ? false : true
 };
-
 
 if (argv.help){
   return console.log(`
@@ -37,6 +39,7 @@ if (argv.help){
     -s           include stats (json only)
     --output     output to file
     -a           absolute path
+    --excludehidden  Does not display hidden files
 `);
 }
 
@@ -103,6 +106,9 @@ function success(string){
   process.stdout.write(colors.green(string+"\n"));
 
 }
+
+
+
 
 
 var find  = new Find(directory, options);

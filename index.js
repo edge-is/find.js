@@ -6,6 +6,16 @@ const EventEmitter = require('events');
 const path = require('path');
 
 const emitter = new EventEmitter();
+const isWin = /^win/.test(process.platform);
+const isHiddenRegexLinux = new RegExp(/\/\./g);
+const isHiddenRegexWin   = new RegExp(/\\\./g);
+
+const hiddenRegex = (isWin) ? isHiddenRegexWin : isHiddenRegexLinux
+
+function isHidden(item){
+  return hiddenRegex.test(item);
+}
+
 
 var Find = function (dir, options){
   var self = this;
@@ -13,6 +23,8 @@ var Find = function (dir, options){
   self.directory = dir;
 
   self.options = options || {};
+
+  self.hidden = (options.hidden === undefined) ? true : options.hidden;
 
   self.output = {
     files : [],
@@ -131,9 +143,17 @@ Find.prototype._stat = function(location, callback){
       path : _location,
       stats : stats
     };
+
+    if (self.hidden === false){
+      if (isHidden(_location)){
+        return emitter.emit('hidden', _location, stats);
+      }
+    }
+
+
     if (stats.isDirectory()){
       self.output.directorys.push(obj);
-      emitter.emit('directory', location, stats);
+      emitter.emit('directory', _location, stats);
       return self.dir(location, callback);
     }
 
