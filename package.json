@@ -1,6 +1,6 @@
 {
   "name": "find.js",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Fast Library and cli for finding files ore just listing files",
   "main": "index.js",
   "scripts": {
@@ -21,7 +21,7 @@
     "url": "git://github.com/edge-is/find.js.git"
   },
   "dependencies": {
-    "async": "^2.5.0",
+    "async": "^2.6.0",
     "chrono-node": "^1.3.5",
     "colors": "^1.1.2",
     "filesize-parser": "^1.4.1",
