@@ -15,12 +15,13 @@ const hiddenRegex = (isWin) ? isHiddenRegexWin : isHiddenRegexLinux
 function isHidden(item){
   return hiddenRegex.test(item);
 }
+const fn = function (){};
 
-
-var Find = function (dir, options){
-  var self = this;
+const Find = function (dir, options){
+  const self = this;
 
   self.directory = dir;
+  self.done = fn;
 
   self.options = options || {};
 
@@ -40,15 +41,12 @@ var Find = function (dir, options){
 
   self.options.concurrency = self.options.concurrency || 10;
 
-  var fn = function (){}
-
   self.queue = async.queue(function(location, callback) {
     async.setImmediate(function (){
       self._stat(location, callback);
     });
   }, self.options.concurrency);
 
-  self.done = function(){};
 
   self.queue.drain = function (){
     self.done(null, self.output);
@@ -61,18 +59,17 @@ var Find = function (dir, options){
 
 
 Find.prototype.start = function (callback) {
-  var self = this;
-
-  var fn = function (){};
+  const self = this;
 
   self.onError = callback || fn;
   self.done = callback || fn;
+
+  self.isCallback = (callback) ? true : false;
   self.dir(self.directory);
   return emitter;
 };
 Find.prototype.dir = function (dir, callback) {
-  var self = this;
-  var fn = function (){};
+  const self = this;
 
   callback = callback || fn;
 
@@ -83,7 +80,7 @@ Find.prototype.dir = function (dir, callback) {
       return self.done(err);
     }
     async.forEachLimit(res, self.options.concurrency, function (value, next){
-      var location = path.join(dir, value);
+      const location = path.join(dir, value);
       self.queue.push(location, fn);
       async.setImmediate(next)
     }, function (){
@@ -93,7 +90,7 @@ Find.prototype.dir = function (dir, callback) {
 };
 
 function matchFile(obj, options){
-  var status = [];
+  const status = [];
 
   if (options.match){
     if (obj.path.match(options.match)){
@@ -120,7 +117,7 @@ function matchFile(obj, options){
     status.push (compare(options.size.size, obj.stats.size, options.size.larger));
 
   }
-  var x = status.filter(function (a){
+  const x = status.filter(function (a){
     return !a;
   });
   if (x.length === 0) return true;
@@ -128,38 +125,48 @@ function matchFile(obj, options){
   return false;
 }
 Find.prototype._stat = function(location, callback){
-  var self = this;
+  const self = this;
   fs.stat(location, function (err, stats){
-    var _location = path.join(self.base, location)
+    const _location = path.join(self.base, location)
     if (err){
-      self.error.output.push({
-        path : _location,
-        error : err
-      });
+      if (self.isCallback){
+        self.output.errors.push({
+          path : _location,
+          error : err
+        });
+      }
+
       return callback();
     }
 
-    var obj = {
+    const obj = {
       path : _location,
       stats : stats
     };
 
     if (self.hidden === false){
       if (isHidden(_location)){
-        return emitter.emit('hidden', _location, stats);
+        emitter.emit('hidden', _location, stats);
+        return setImmediate(callback);
       }
     }
 
-
     if (stats.isDirectory()){
-      self.output.directorys.push(obj);
+      if (self.isCallback){
+        self.output.directorys.push(obj);
+      }
+
       emitter.emit('directory', _location, stats);
       return self.dir(location, callback);
     }
 
     if (stats.isFile()){
+
+
       if (matchFile(obj, self.options)){
-        self.output.files.push(obj);
+        if (self.isCallback){
+          self.output.files.push(obj);
+        }
         emitter.emit('file', _location, stats);
       }
 
