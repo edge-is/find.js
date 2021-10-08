@@ -22,11 +22,11 @@
   },
   "dependencies": {
     "async": "^2.6.0",
-    "chrono-node": "^1.3.5",
+    "chrono-node": "^2.3.2",
     "colors": "^1.1.2",
     "filesize-parser": "^1.4.1",
     "glob-to-regexp": "^0.3.0",
     "human-size": "^1.1.0",
-    "yargs": "^6.6.0"
+    "yargs": "^17.2.1"
   }
 }
